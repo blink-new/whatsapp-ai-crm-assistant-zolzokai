@@ -1,19 +1,20 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { 
+  MessageCircle, 
+  Search, 
   Send, 
-  Phone, 
-  MoreVertical, 
-  Search,
-  Bot,
+  Bot, 
   User,
   Clock,
-  CheckCheck
+  CheckCheck,
+  Phone,
+  MoreVertical,
+  Filter
 } from 'lucide-react'
 
 const conversations = [
@@ -21,208 +22,232 @@ const conversations = [
     id: 1,
     customer: {
       name: "John Doe",
-      phone: "+1234567890",
-      avatar: "",
+      phone: "+1 234 567 8901",
+      avatar: "/api/placeholder/40/40",
       status: "online"
     },
     lastMessage: "Thank you for the quick response!",
     timestamp: "2 min ago",
     unread: 0,
-    isAiHandled: true
+    isAI: false,
+    status: "delivered"
   },
   {
     id: 2,
     customer: {
       name: "Sarah Wilson",
-      phone: "+1234567891",
-      avatar: "",
-      status: "offline"
+      phone: "+1 234 567 8902",
+      avatar: "/api/placeholder/40/40",
+      status: "away"
     },
-    lastMessage: "Can you help me with my order?",
+    lastMessage: "AI: I've found the information you requested. Here are the details...",
     timestamp: "5 min ago",
     unread: 2,
-    isAiHandled: false
+    isAI: true,
+    status: "read"
   },
   {
     id: 3,
     customer: {
       name: "Mike Johnson",
-      phone: "+1234567892",
-      avatar: "",
+      phone: "+1 234 567 8903",
+      avatar: "/api/placeholder/40/40",
+      status: "offline"
+    },
+    lastMessage: "Can you help me with my order?",
+    timestamp: "1 hour ago",
+    unread: 1,
+    isAI: false,
+    status: "pending"
+  },
+  {
+    id: 4,
+    customer: {
+      name: "Emma Davis",
+      phone: "+1 234 567 8904",
+      avatar: "/api/placeholder/40/40",
       status: "online"
     },
-    lastMessage: "Perfect! That's exactly what I needed.",
-    timestamp: "1 hour ago",
+    lastMessage: "AI: Your request has been processed successfully.",
+    timestamp: "2 hours ago",
     unread: 0,
-    isAiHandled: true
+    isAI: true,
+    status: "delivered"
   }
 ]
 
-const messages = [
+const currentMessages = [
   {
     id: 1,
-    text: "Hi! I'm interested in your products. Can you tell me more about pricing?",
     sender: "customer",
+    message: "Hi, I need help with my recent order",
     timestamp: "10:30 AM",
     status: "delivered"
   },
   {
     id: 2,
-    text: "Hello! I'd be happy to help you with pricing information. Based on your inquiry, I can see you're interested in our premium package. Let me get you the details.",
     sender: "ai",
+    message: "Hello! I'd be happy to help you with your order. Could you please provide your order number?",
     timestamp: "10:31 AM",
     status: "delivered"
   },
   {
     id: 3,
-    text: "Our premium package starts at $99/month and includes:\n• 24/7 customer support\n• Advanced analytics\n• Custom integrations\n• Priority processing",
-    sender: "ai",
-    timestamp: "10:31 AM",
+    sender: "customer",
+    message: "Sure, it's #ORD-12345",
+    timestamp: "10:32 AM",
     status: "delivered"
   },
   {
     id: 4,
-    text: "That sounds great! Do you offer any discounts for annual subscriptions?",
-    sender: "customer",
-    timestamp: "10:35 AM",
+    sender: "ai",
+    message: "Thank you! I found your order #ORD-12345. It was placed on January 15th for $89.99. The status shows it's currently being processed and will ship within 2-3 business days. Is there anything specific you'd like to know about this order?",
+    timestamp: "10:33 AM",
     status: "delivered"
   },
   {
     id: 5,
-    text: "Yes! We offer a 20% discount for annual subscriptions. That would bring your cost down to $79.20/month when paid annually. Would you like me to set up a demo for you?",
-    sender: "ai",
-    timestamp: "10:36 AM",
-    status: "delivered"
+    sender: "customer",
+    message: "When will it arrive?",
+    timestamp: "10:35 AM",
+    status: "read"
   }
 ]
 
 export function Conversations() {
   const [selectedConversation, setSelectedConversation] = useState(conversations[0])
-  const [newMessage, setNewMessage] = useState("")
-  const [searchTerm, setSearchTerm] = useState("")
+  const [newMessage, setNewMessage] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
 
   const filteredConversations = conversations.filter(conv =>
-    conv.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    conv.customer.phone.includes(searchTerm)
+    conv.customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    conv.customer.phone.includes(searchQuery)
   )
 
-  const handleSendMessage = () => {
+  const sendMessage = () => {
     if (newMessage.trim()) {
-      // Here you would typically send the message via API
-      console.log("Sending message:", newMessage)
-      setNewMessage("")
+      // Handle sending message
+      setNewMessage('')
     }
   }
 
   return (
     <div className="h-[calc(100vh-8rem)] flex gap-6">
       {/* Conversations List */}
-      <Card className="w-80 flex flex-col">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Conversations</CardTitle>
+      <div className="w-1/3 modern-card flex flex-col">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <MessageCircle className="w-5 h-5 text-emerald-600" />
+              Conversations
+            </CardTitle>
+            <Button size="sm" variant="outline" className="hover-lift">
+              <Filter className="w-4 h-4" />
+            </Button>
+          </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
               placeholder="Search conversations..."
-              className="pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 input-focus"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </CardHeader>
-        <CardContent className="flex-1 p-0">
-          <ScrollArea className="h-full">
-            <div className="space-y-1 p-3">
-              {filteredConversations.map((conversation) => (
-                <div
-                  key={conversation.id}
-                  className={`p-3 rounded-lg cursor-pointer transition-colors hover:bg-muted ${
-                    selectedConversation.id === conversation.id ? 'bg-muted' : ''
-                  }`}
-                  onClick={() => setSelectedConversation(conversation)}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="relative">
-                      <Avatar className="w-10 h-10">
-                        <AvatarImage src={conversation.customer.avatar} />
-                        <AvatarFallback>
-                          {conversation.customer.name.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      {conversation.customer.status === 'online' && (
-                        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-background" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium truncate">{conversation.customer.name}</h4>
-                        <div className="flex items-center gap-1">
-                          {conversation.isAiHandled && (
-                            <Bot className="w-3 h-3 text-primary" />
-                          )}
-                          <span className="text-xs text-muted-foreground">
-                            {conversation.timestamp}
-                          </span>
-                        </div>
-                      </div>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {conversation.lastMessage}
-                      </p>
-                      <div className="flex items-center justify-between mt-1">
-                        <span className="text-xs text-muted-foreground">
-                          {conversation.customer.phone}
-                        </span>
+        <CardContent className="flex-1 overflow-auto p-0">
+          <div className="space-y-1">
+            {filteredConversations.map((conversation) => (
+              <div
+                key={conversation.id}
+                className={`p-4 cursor-pointer transition-all duration-200 hover:bg-gradient-to-r hover:from-slate-50 hover:to-blue-50 ${
+                  selectedConversation.id === conversation.id 
+                    ? 'whatsapp-gradient-light border-l-4 border-emerald-500' 
+                    : ''
+                }`}
+                onClick={() => setSelectedConversation(conversation)}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="relative">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={conversation.customer.avatar} alt={conversation.customer.name} />
+                      <AvatarFallback className="whatsapp-gradient text-white">
+                        <User className="w-6 h-6" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
+                      conversation.customer.status === 'online' ? 'status-online' :
+                      conversation.customer.status === 'away' ? 'status-away' : 'status-offline'
+                    }`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium text-gray-900 truncate">{conversation.customer.name}</h3>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">{conversation.timestamp}</span>
                         {conversation.unread > 0 && (
-                          <Badge variant="default" className="text-xs px-1.5 py-0.5">
+                          <Badge className="notification-badge text-white text-xs px-2 py-1">
                             {conversation.unread}
                           </Badge>
                         )}
                       </div>
                     </div>
+                    <p className="text-sm text-muted-foreground truncate mt-1">
+                      {conversation.isAI && (
+                        <Bot className="w-3 h-3 inline mr-1 text-purple-600" />
+                      )}
+                      {conversation.lastMessage}
+                    </p>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-xs text-muted-foreground">{conversation.customer.phone}</span>
+                      <div className="flex items-center gap-1">
+                        {conversation.status === 'delivered' && <CheckCheck className="w-3 h-3 text-blue-500" />}
+                        {conversation.status === 'read' && <CheckCheck className="w-3 h-3 text-emerald-500" />}
+                        {conversation.status === 'pending' && <Clock className="w-3 h-3 text-orange-500" />}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </ScrollArea>
+              </div>
+            ))}
+          </div>
         </CardContent>
-      </Card>
+      </div>
 
-      {/* Chat Interface */}
-      <Card className="flex-1 flex flex-col">
+      {/* Chat Area */}
+      <div className="flex-1 modern-card flex flex-col">
         {/* Chat Header */}
-        <CardHeader className="border-b border-border">
+        <CardHeader className="border-b border-gray-100">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Avatar className="w-10 h-10">
-                <AvatarImage src={selectedConversation.customer.avatar} />
-                <AvatarFallback>
-                  {selectedConversation.customer.name.split(' ').map(n => n[0]).join('')}
-                </AvatarFallback>
-              </Avatar>
+              <div className="relative">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={selectedConversation.customer.avatar} alt={selectedConversation.customer.name} />
+                  <AvatarFallback className="whatsapp-gradient text-white">
+                    <User className="w-5 h-5" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${
+                  selectedConversation.customer.status === 'online' ? 'status-online' :
+                  selectedConversation.customer.status === 'away' ? 'status-away' : 'status-offline'
+                }`} />
+              </div>
               <div>
-                <h3 className="font-semibold">{selectedConversation.customer.name}</h3>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span>{selectedConversation.customer.phone}</span>
-                  <div className="flex items-center gap-1">
-                    <div className={`w-2 h-2 rounded-full ${
-                      selectedConversation.customer.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
-                    }`} />
-                    <span>{selectedConversation.customer.status}</span>
-                  </div>
+                <h3 className="font-medium text-gray-900">{selectedConversation.customer.name}</h3>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">{selectedConversation.customer.phone}</span>
+                  <Badge className="success-gradient text-white text-xs px-2 py-0.5">
+                    <Bot className="w-3 h-3 mr-1" />
+                    AI Enabled
+                  </Badge>
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {selectedConversation.isAiHandled && (
-                <Badge variant="secondary" className="bg-green-100 text-green-800">
-                  <Bot className="w-3 h-3 mr-1" />
-                  AI Handled
-                </Badge>
-              )}
-              <Button variant="ghost" size="icon">
+              <Button size="sm" variant="outline" className="hover-lift">
                 <Phone className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="icon">
+              <Button size="sm" variant="outline" className="hover-lift">
                 <MoreVertical className="w-4 h-4" />
               </Button>
             </div>
@@ -230,74 +255,69 @@ export function Conversations() {
         </CardHeader>
 
         {/* Messages */}
-        <CardContent className="flex-1 p-0">
-          <ScrollArea className="h-full p-4">
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.sender === 'customer' ? 'justify-start' : 'justify-end'}`}
-                >
-                  <div className={`max-w-xs lg:max-w-md ${
-                    message.sender === 'customer' 
-                      ? 'message-bubble message-received' 
-                      : 'message-bubble message-sent'
-                  }`}>
-                    <div className="flex items-start gap-2">
-                      {message.sender === 'ai' && (
-                        <Bot className="w-4 h-4 mt-1 text-primary-foreground" />
-                      )}
-                      {message.sender === 'customer' && (
-                        <User className="w-4 h-4 mt-1 text-foreground" />
-                      )}
-                      <div className="flex-1">
-                        <p className="whitespace-pre-wrap">{message.text}</p>
-                        <div className="flex items-center justify-end gap-1 mt-1">
-                          <span className={`text-xs ${
-                            message.sender === 'customer' ? 'text-muted-foreground' : 'text-primary-foreground/70'
-                          }`}>
-                            {message.timestamp}
-                          </span>
-                          {message.sender !== 'customer' && (
-                            <CheckCheck className="w-3 h-3 text-primary-foreground/70" />
-                          )}
-                        </div>
-                      </div>
-                    </div>
+        <CardContent className="flex-1 overflow-auto p-4 space-y-4">
+          {currentMessages.map((message) => (
+            <div
+              key={message.id}
+              className={`flex ${message.sender === 'customer' ? 'justify-start' : 'justify-end'}`}
+            >
+              <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${
+                message.sender === 'customer' 
+                  ? 'message-bubble-received' 
+                  : message.sender === 'ai'
+                  ? 'ai-gradient text-white'
+                  : 'message-bubble-sent text-white'
+              }`}>
+                {message.sender === 'ai' && (
+                  <div className="flex items-center gap-2 mb-2">
+                    <Bot className="w-4 h-4" />
+                    <span className="text-xs font-medium opacity-90">AI Assistant</span>
                   </div>
+                )}
+                <p className="text-sm">{message.message}</p>
+                <div className="flex items-center justify-between mt-2">
+                  <span className={`text-xs ${
+                    message.sender === 'customer' ? 'text-muted-foreground' : 'text-white/70'
+                  }`}>
+                    {message.timestamp}
+                  </span>
+                  {message.sender !== 'customer' && (
+                    <CheckCheck className={`w-3 h-3 ${
+                      message.status === 'read' ? 'text-white' : 'text-white/70'
+                    }`} />
+                  )}
                 </div>
-              ))}
+              </div>
             </div>
-          </ScrollArea>
+          ))}
         </CardContent>
 
         {/* Message Input */}
-        <div className="border-t border-border p-4">
-          <div className="flex items-center gap-2">
-            <Input
-              placeholder="Type a message..."
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              className="flex-1 chat-input"
-            />
-            <Button 
-              onClick={handleSendMessage}
-              disabled={!newMessage.trim()}
-              className="whatsapp-green"
-            >
-              <Send className="w-4 h-4" />
+        <div className="border-t border-gray-100 p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 relative">
+              <Input
+                placeholder="Type a message..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                className="pr-12 input-focus"
+              />
+              <Button
+                size="sm"
+                onClick={sendMessage}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 btn-whatsapp text-white px-3"
+              >
+                <Send className="w-4 h-4" />
+              </Button>
+            </div>
+            <Button variant="outline" size="sm" className="btn-ai text-white hover-lift">
+              <Bot className="w-4 h-4 mr-2" />
+              AI Suggest
             </Button>
           </div>
-          <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-            <span>AI will automatically respond to new messages</span>
-            <div className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              <span>Avg response: 2.3s</span>
-            </div>
-          </div>
         </div>
-      </Card>
+      </div>
     </div>
   )
 }
